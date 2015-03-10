@@ -5,13 +5,20 @@ import android.graphics.Bitmap;
 import android.provider.MediaStore;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.GetCallback;
+import com.parse.ParseException;
 import com.parse.ParseFile;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
@@ -21,7 +28,7 @@ public class MainActivity extends ActionBarActivity {
     static final int REQUEST_IMAGE_CAPTURE = 1;
     static final int REQUEST_PHOTO_SELECTED = 2;
 
-    Button btnTakePicture, btnDisk, btnUpload;
+    Button btnTakePicture, btnDisk, btnUpload, btnDownload, btnView;
     ImageView imageView;
     Bitmap bitmap;
 
@@ -32,7 +39,11 @@ public class MainActivity extends ActionBarActivity {
         btnTakePicture = (Button) findViewById(R.id.buttonTakePicture);
         btnDisk = (Button) findViewById(R.id.buttonDisk);
         btnUpload = (Button) findViewById(R.id.buttonUpload);
+        btnDownload = (Button) findViewById(R.id.buttonDownload);
+        btnView = (Button) findViewById(R.id.buttonView);
+
         imageView = (ImageView) findViewById(R.id.imageView);
+
 
         btnTakePicture.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,6 +80,30 @@ public class MainActivity extends ActionBarActivity {
                 ParseFile file = new ParseFile("androidbegin.png", image);
                 // Upload the image into Parse Cloud
                 file.saveInBackground();
+
+                ParseObject photo = new ParseObject("Photo");
+                photo.put("Name", "Fotografía");
+                photo.put("file", file);
+                photo.saveInBackground();
+
+            }
+        });
+
+        btnDownload.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                ParseQuery<ParseObject> query = new ParseQuery<ParseObject>("Photo");
+                query.whereExists("Name");
+                query.findInBackground(new FindCallback<ParseObject>() {
+                    @Override
+                    public void done(List<ParseObject> parseObjects, ParseException e) {
+                        if (e == null ) {
+                            Toast.makeText(getApplicationContext(), "Total number is:" + parseObjects.size(), Toast.LENGTH_SHORT).show();
+                        } else
+                            Log.e("MainActivity", e.toString());
+                    }
+                });
             }
         });
 
